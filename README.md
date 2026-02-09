@@ -1,10 +1,3 @@
-`README.md` 파일에 **UI 설명 섹션**과 **아키텍처 다이어그램(Mermaid)**을 추가했습니다.
-사용자가 직접 스크린샷을 찍어 넣을 수 있도록 이미지 경로(`docs/ui_screenshot.png`)를 예시로 잡아두었으니, 해당 경로에 이미지를 넣으시면 됩니다.
-
-아래 내용을 `README.md`에 덮어쓰세요.
-
----
-
 # Crude
 
 **Crude** is a tool for building and executing web crawling logic using a visual interface or as a Rust library.
