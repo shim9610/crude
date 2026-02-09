@@ -1,0 +1,423 @@
+{
+  "main_sequences": {
+    "Youtybe_example": {
+      "sequence_name": "Youtybe_example",
+      "step_squence": [
+        {
+          "Item": {
+            "Act": {
+              "Navigate": {
+                "url": {
+                  "value": "https://www.youtube.com/",
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "Type": {
+                "selector": {
+                  "value": "#center > yt-searchbox > div.ytSearchboxComponentInputContainer > div > form > input:nth-child(1)",
+                  "binding": null
+                },
+                "text": {
+                  "value": "quantum",
+                  "binding": "keyword"
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "PressKey": {
+                "key": "Enter"
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "WaitFor": {
+                "selector_string": {
+                  "value": "#contents > ytd-video-renderer",
+                  "binding": null
+                },
+                "time_ms": {
+                  "value": 500,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "GetHTML": {
+                "selector_string": {
+                  "value": "#contents > ytd-video-renderer",
+                  "binding": null
+                },
+                "time_ms": {
+                  "value": 100,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Container": {
+            "selector": {
+              "value": "#contents > ytd-video-renderer",
+              "binding": null
+            },
+            "steps": [
+              {
+                "Extract": {
+                  "Attribute": {
+                    "selector_string": {
+                      "value": "#video-title",
+                      "binding": null
+                    },
+                    "field_name": {
+                      "value": "href_bind",
+                      "binding": null
+                    },
+                    "attr_str": {
+                      "value": "href",
+                      "binding": null
+                    }
+                  }
+                }
+              },
+              {
+                "Extract": {
+                  "Text": {
+                    "selector_string": {
+                      "value": "#video-title",
+                      "binding": null
+                    },
+                    "field_name": {
+                      "value": "title",
+                      "binding": null
+                    }
+                  }
+                }
+              }
+            ],
+            "dedup": true
+          }
+        },
+        {
+          "SubSequence": {
+            "sequence_name": "sub_1",
+            "step_squence": [
+              {
+                "Item": {
+                  "Act": {
+                    "NavigateHref": {
+                      "base": {
+                        "value": "https://www.youtube.com/",
+                        "binding": null
+                      },
+                      "href": {
+                        "value": "",
+                        "binding": "href_bind"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "Wait": {
+                      "time_ms": {
+                        "value": 3000,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "ScrollDown": {
+                      "scroll": {
+                        "value": 300,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "Wait": {
+                      "time_ms": {
+                        "value": 300,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "Click": {
+                      "selector_string": {
+                        "value": "#expand",
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "Wait": {
+                      "time_ms": {
+                        "value": 300,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "WaitFor": {
+                      "selector_string": {
+                        "value": "#expanded > yt-attributed-string > span > span",
+                        "binding": null
+                      },
+                      "time_ms": {
+                        "value": 500,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Act": {
+                    "GetHTML": {
+                      "selector_string": {
+                        "value": "#expanded > yt-attributed-string > span > span",
+                        "binding": null
+                      },
+                      "time_ms": {
+                        "value": 1000,
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Extract": {
+                    "MultipleText": {
+                      "selector_string": {
+                        "value": "#expanded > yt-attributed-string > span > span",
+                        "binding": null
+                      },
+                      "field_name": {
+                        "value": "description_multi",
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Item": {
+                  "Extract": {
+                    "Text": {
+                      "selector_string": {
+                        "value": "#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button-view-model > button > div.yt-spec-button-shape-next__button-text-content",
+                        "binding": null
+                      },
+                      "field_name": {
+                        "value": "like",
+                        "binding": null
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "target_data": {},
+            "metadata": [
+              "mapping:href_bind:href_bind"
+            ]
+          }
+        }
+      ],
+      "target_data": {},
+      "metadata": []
+    }
+  },
+  "sub_sequences": {
+    "sub_1": {
+      "sequence_name": "sub_1",
+      "step_squence": [
+        {
+          "Item": {
+            "Act": {
+              "NavigateHref": {
+                "base": {
+                  "value": "https://www.youtube.com/",
+                  "binding": null
+                },
+                "href": {
+                  "value": "",
+                  "binding": "href"
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "Wait": {
+                "time_ms": {
+                  "value": 3000,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "ScrollDown": {
+                "scroll": {
+                  "value": 300,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "Wait": {
+                "time_ms": {
+                  "value": 300,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "Click": {
+                "selector_string": {
+                  "value": "#expand",
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "Wait": {
+                "time_ms": {
+                  "value": 300,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "WaitFor": {
+                "selector_string": {
+                  "value": "#expanded > yt-attributed-string > span > span",
+                  "binding": null
+                },
+                "time_ms": {
+                  "value": 500,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Act": {
+              "GetHTML": {
+                "selector_string": {
+                  "value": "#expanded > yt-attributed-string > span > span",
+                  "binding": null
+                },
+                "time_ms": {
+                  "value": 1000,
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Extract": {
+              "MultipleText": {
+                "selector_string": {
+                  "value": "#expanded > yt-attributed-string > span > span",
+                  "binding": null
+                },
+                "field_name": {
+                  "value": "description_multi",
+                  "binding": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "Item": {
+            "Extract": {
+              "Text": {
+                "selector_string": {
+                  "value": "#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button-view-model > button > div.yt-spec-button-shape-next__button-text-content",
+                  "binding": null
+                },
+                "field_name": {
+                  "value": "like",
+                  "binding": null
+                }
+              }
+            }
+          }
+        }
+      ],
+      "target_data": {},
+      "metadata": []
+    }
+  }
+}
