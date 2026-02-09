@@ -2,8 +2,8 @@
 //! Cross-platform build tasks
 //! 
 //! Usage:
-//!   cargo ui build      - Build browser_runner + work_flow_ui (debug)
-//!   cargo ui run        - Run work_flow_ui after build (debug)
+//!   cargo ui build      - Build browser_runner + crude-ui (debug)
+//!   cargo ui run        - Run crude-ui after build (debug)
 //!   cargo ui release    - Build release version
 
 use std::process::{Command, exit};
@@ -31,10 +31,10 @@ fn help() {
     println!("Usage: cargo ui <command>");
     println!();
     println!("Commands:");
-    println!("  build        Build browser_runner + work_flow_ui (debug)");
-    println!("  release      Build browser_runner + work_flow_ui (release)");
-    println!("  run          Run work_flow_ui after build (debug)");
-    println!("  run-release  Run work_flow_ui after build (release)");
+    println!("  build        Build browser_runner + crude-ui (debug)");
+    println!("  release      Build browser_runner + crude-ui (release)");
+    println!("  run          Run crude-ui after build (debug)");
+    println!("  run-release  Run crude-ui after build (release)");
     println!("  help         Show this help message");
 }
 
@@ -47,10 +47,10 @@ fn build(release: bool) {
         exit(1);
     }
     
-    println!("🔨 Building work_flow_ui ({})...", mode);
+    println!("🔨 Building crude-ui ({})...", mode);
     
-    if !cargo_build("work_flow_ui", release) {
-        eprintln!("❌ work_flow_ui build failed");
+    if !cargo_build("crude-ui", release) {
+        eprintln!("❌ crude-ui build failed");
         exit(1);
     }
     
@@ -60,10 +60,10 @@ fn build(release: bool) {
 fn run(release: bool) {
     build(release);
     
-    println!("🚀 Running work_flow_ui...");
+    println!("🚀 Running crude-ui...");
     
     let mut cmd = Command::new("cargo");
-    cmd.args(["run", "--bin", "work_flow_ui", "--features", "dev-tools"]);
+    cmd.args(["run", "--bin", "crude-ui", "--features", "dev-tools"]);
     
     if release {
         cmd.arg("--release");

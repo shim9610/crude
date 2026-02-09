@@ -1,3 +1,10 @@
+`README.md` 파일에 **UI 설명 섹션**과 **아키텍처 다이어그램(Mermaid)**을 추가했습니다.
+사용자가 직접 스크린샷을 찍어 넣을 수 있도록 이미지 경로(`docs/ui_screenshot.png`)를 예시로 잡아두었으니, 해당 경로에 이미지를 넣으시면 됩니다.
+
+아래 내용을 `README.md`에 덮어쓰세요.
+
+---
+
 # Crude
 
 **Crude** is a tool for building and executing web crawling logic using a visual interface or as a Rust library.
@@ -42,6 +49,7 @@ You can use `crude` as a library to execute saved JSON sequences programmaticall
 [dependencies]
 crude = { git = "https://github.com/shim9610/crude" }
 tokio = { version = "1", features = ["full"] }
+serde_json = "1.0"
 
 ```
 
@@ -49,7 +57,7 @@ tokio = { version = "1", features = ["full"] }
 
 ```rust
 use crude::browser::virtual_browser::{VirtualBrowser, DeviceType};
-use crude::browser::driver_updater::ChromeDriver; // Import Updater
+use crude::browser::driver_updater::ChromeDriver; 
 use std::sync::{Arc, atomic::AtomicBool};
 use std::process::Command;
 use std::time::Duration;
@@ -57,32 +65,23 @@ use std::time::Duration;
 #[tokio::main]
 async fn main() {
     // 1. Auto-Update ChromeDriver
-    // Checks local Chrome version and downloads matching driver if needed.
-    println!("Checking ChromeDriver...");
     let driver_path = ChromeDriver::install().expect("Failed to update ChromeDriver");
-    println!("ChromeDriver ready at: {:?}", driver_path);
 
     // 2. Start ChromeDriver Process
-    // VirtualBrowser connects to localhost:9515, so we must spawn the driver first.
     let mut driver_process = Command::new(driver_path)
         .arg("--port=9515")
         .spawn()
         .expect("Failed to start driver process");
-
-    // Give it time to start listening
     tokio::time::sleep(Duration::from_secs(2)).await;
 
-    // 3. Load the Sequence JSON
+    // 3. Load Sequence & Run
     let json_content = std::fs::read_to_string("my_sequence.json").unwrap();
     let sequence: crude::collector::workflow::Sequence = serde_json::from_str(&json_content).unwrap();
 
-    // 4. Launch Browser Client
-    // DeviceType::Desktop ensures a standard user-agent.
-    let browser = VirtualBrowser::new(DeviceType::Desktop, Some(false)) // false = Show GUI
+    let browser = VirtualBrowser::new(DeviceType::Desktop, Some(false))
         .await
         .expect("Failed to connect to ChromeDriver");
 
-    // 5. Run
     println!("Running sequence: {}", sequence.sequence_name);
     let shutdown = Arc::new(AtomicBool::new(false));
     
@@ -91,14 +90,36 @@ async fn main() {
         Err(e) => eprintln!("Execution failed: {:?}", e),
     }
 
-    // 6. Cleanup
-    browser.close().await.ok();     // Close Browser Session
-    driver_process.kill().ok();     // Kill Driver Process
+    browser.close().await.ok();
+    driver_process.kill().ok();
 }
 
 ```
 
 ---
+
+## 🖥️ User Interface Guide
+
+The UI is divided into three main areas for intuitive workflow construction.
+
+![UI Overview](docs/Ui.png)
+
+### 1. Handler Palette (Left Panel)
+
+* **List of Blocks**: Contains all available Actions (Click, Type, Wait) and Extractors.
+* **Drag & Drop**: Drag items from here and drop them into the Sequence Editor.
+
+### 2. Sequence Editor (Center Canvas)
+
+* **Visual Logic**: Shows the list of steps that will be executed sequentially.
+* **Nesting**: `Container` handlers can hold other steps inside them for looping logic.
+* **Reordering**: Drag items up or down to change execution order.
+
+### 3. Execution & Logs (Bottom/Overlay)
+
+* **Run Button**: Sends the current sequence JSON to the `browser_runner`.
+* **Browser View**: A real Chrome window opens to visualize the crawling process.
+
 
 ## 🛠 Handler Reference
 

@@ -31,7 +31,7 @@ default = []
 dev-tools = ["dep:iced", "dep:iced-mouse-layer","collector/ui"]
 [[bin]]
 name = "crude-ui"
-path = "src/bin/work_flow_ui.rs"
+path = "src/bin/crude-ui.rs"
 required-features = ["dev-tools"]
 [[bin]]
 name = "browser_runner"
