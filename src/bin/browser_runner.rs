@@ -251,7 +251,7 @@ fn handle_command(cmd: Command, state: &mut BrowserState) -> String {
             
             let keyword = keyword.unwrap_or_else(|| "test".to_string());
             let seq_name = sequence.sequence_name.clone();
-            let handler_count = sequence.step_squence.len();
+            let handler_count = sequence.step_sequence.len();
             
             logs.push(format!("▶️ Starting execution of sequence '{}' (keyword: {}, {} handlers)", seq_name, keyword, handler_count));
             
@@ -296,7 +296,7 @@ fn handle_command(cmd: Command, state: &mut BrowserState) -> String {
             };
             
             let seq_name = sequence.sequence_name.clone();
-            let handler_count = sequence.step_squence.len();
+            let handler_count = sequence.step_sequence.len();
             
             logs.push(format!("🚀 Starting execution of sequence '{}'", seq_name));
             logs.push(format!("   📍 URL: {}", start_url));

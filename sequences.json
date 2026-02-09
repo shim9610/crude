@@ -2,7 +2,7 @@
   "main_sequences": {
     "Youtybe_example": {
       "sequence_name": "Youtybe_example",
-      "step_squence": [
+      "step_sequence": [
         {
           "Item": {
             "Act": {
@@ -118,7 +118,7 @@
         {
           "SubSequence": {
             "sequence_name": "sub_1",
-            "step_squence": [
+            "step_sequence": [
               {
                 "Item": {
                   "Act": {
@@ -274,7 +274,7 @@
   "sub_sequences": {
     "sub_1": {
       "sequence_name": "sub_1",
-      "step_squence": [
+      "step_sequence": [
         {
           "Item": {
             "Act": {

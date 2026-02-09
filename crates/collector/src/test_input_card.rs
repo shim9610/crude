@@ -48,7 +48,7 @@ impl TestInputState {
         self.binding_keys.clear();
         self.mapped_keys.clear();
         
-        for handler in &seq.step_squence {
+        for handler in &seq.step_sequence {
             self.extract_keys_from_handler(handler);
         }
         
@@ -123,7 +123,7 @@ impl TestInputState {
                 }
                 
                 // Also traverse internal handlers of SubSequence
-                for h in &inner_seq.step_squence {
+                for h in &inner_seq.step_sequence {
                     self.extract_keys_from_handler(h);
                 }
             }

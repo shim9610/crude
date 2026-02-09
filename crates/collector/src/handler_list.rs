@@ -52,7 +52,7 @@ pub fn sequence_list<'a, Message: 'a + Clone>(
     title: Option<&'a str>,
 ) -> Element<'a, Message, Theme> {
     let display_title = title.unwrap_or(&sequence.sequence_name);
-    handler_list(&sequence.step_squence, display_title)
+    handler_list(&sequence.step_sequence, display_title)
 }
 
 /// Compact Handler List

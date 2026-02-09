@@ -682,7 +682,7 @@ pub enum Handler{
 #[derive(Debug, Clone,Serialize,Deserialize)]
 pub struct Sequence {
     pub sequence_name: String,
-    pub step_squence: Vec<Handler>,
+    pub step_sequence: Vec<Handler>,
     pub target_data: HashMap<String, String>,
     pub metadata:Vec<String>
 }
@@ -701,7 +701,7 @@ impl Sequence {
         let mut results: Vec<HashMap<String, String>> = Vec::new();
         let mut current_html: Option<Html> = None;
 
-        for handler in &self.step_squence {
+        for handler in &self.step_sequence {
             if shutdown_flag.load(Ordering::SeqCst) {
                 return Err(WebDriverError::UnknownError(
                     WebDriverErrorInfo::new(format!("{}🛑 Stop signal", self.sequence_name)),

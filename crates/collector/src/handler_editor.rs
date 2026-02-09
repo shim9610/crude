@@ -225,7 +225,7 @@ impl EditorState {
                     "SubSequence" => {
                         self.handler = Handler::SubSequence(Sequence {
                             sequence_name: String::new(),
-                            step_squence: Vec::new(),
+                            step_sequence: Vec::new(),
                             target_data: Default::default(),
                             metadata: Vec::new(),
                         });
@@ -754,7 +754,7 @@ impl EditorState {
 pub fn extract_binding_keys_from_sequence(seq: &Sequence) -> Vec<String> {
     let mut keys = Vec::new();
     
-    for handler in &seq.step_squence {
+    for handler in &seq.step_sequence {
         extract_binding_keys_from_handler(handler, &mut keys);
     }
     
@@ -784,7 +784,7 @@ fn extract_binding_keys_from_handler(handler: &Handler, keys: &mut Vec<String>) 
         }
         Handler::SubSequence(inner_seq) => {
             // Recursively process inner sequences
-            for h in &inner_seq.step_squence {
+            for h in &inner_seq.step_sequence {
                 extract_binding_keys_from_handler(h, keys);
             }
         }

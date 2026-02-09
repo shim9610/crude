@@ -250,7 +250,7 @@ fn extract_card_info(handler: &Handler) -> CardInfo {
             description: seq.sequence_name.clone(),
             selector: None,
             details: vec![
-                ("Steps".to_string(), seq.step_squence.len().to_string()),
+                ("Steps".to_string(), seq.step_sequence.len().to_string()),
                 (
                     "Fields".to_string(),
                     seq.target_data.keys().cloned().collect::<Vec<_>>().join(", "),

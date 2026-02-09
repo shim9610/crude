@@ -312,7 +312,7 @@ impl PaletteKind {
             },
             PaletteKind::SubSequence => Handler::SubSequence(Sequence {
                 sequence_name: String::new(),
-                step_squence: Vec::new(),
+                step_sequence: Vec::new(),
                 target_data: HashMap::new(),
                 metadata: Vec::new(),
             }),
@@ -779,7 +779,7 @@ impl Default for App {
 fn build_sequence(name: &str, handlers: &[Handler]) -> Sequence {
     Sequence {
         sequence_name: name.to_string(),
-        step_squence: handlers.to_vec(),
+        step_sequence: handlers.to_vec(),
         target_data: HashMap::new(),
         metadata: Vec::new(),
     }
@@ -1228,7 +1228,7 @@ impl App {
                                             self.main_sequence_names.push(final_name.clone());
                                             added_main += 1;
                                         }
-                                        self.main_sequences.insert(final_name, seq.step_squence);
+                                        self.main_sequences.insert(final_name, seq.step_sequence);
                                     }
                                     for (name, seq) in file.sub_sequences {
                                         let final_name = if is_merge {
@@ -1241,7 +1241,7 @@ impl App {
                                             self.sub_sequence_names.push(final_name.clone());
                                             added_sub += 1;
                                         }
-                                        self.sub_sequences.insert(final_name, seq.step_squence);
+                                        self.sub_sequences.insert(final_name, seq.step_sequence);
                                     }
                                     if !is_merge && self.current_sequence_name.is_none() {
                                         if let Some(first) = self.main_sequence_names.first().cloned() {
@@ -1484,7 +1484,7 @@ impl App {
                         if let Some(handlers) = self.sub_sequences.get(&name) {
                             if let Handler::SubSequence(ref mut seq) = self.editor.handler {
                                 seq.sequence_name = name.clone();
-                                seq.step_squence = handlers.clone();
+                                seq.step_sequence = handlers.clone();
                                 // Re-parse binding keys
                                 self.editor.subsequence_binding_keys = extract_binding_keys_from_sequence(seq);
                             }
