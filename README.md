@@ -1,159 +1,196 @@
-# crude
+# Crude
 
-**No Coding. Just Drag & Drop. Rust-powered High Performance Crawler.**
+**Crude** is a tool for building and executing web crawling logic using a visual interface or as a Rust library.
+It is designed for **supervised, fixed-logic crawling** where the target website's structure is known and relatively static.
 
-crude is a visual web scraping workflow builder and execution engine built with **Rust**. It allows you to define complex web interaction and data extraction logic using a simple drag-and-drop interface, without writing a single line of code.
+> **Design Philosophy**: This tool prioritizes **manual monitoring** over automated resilience. It intentionally lacks complex error recovery (like auto-retries or proxy rotation) because it is built for tasks where a failure should immediately stop the process for human inspection.
 
-Powered by [Iced](https://github.com/iced-rs/iced) for the GUI and [Thirtyfour](https://github.com/stevepryde/thirtyfour) for browser automation, TaskCrawl offers high performance, type safety, and a seamless developer experience.
+## 📦 Installation
 
----
+This tool consists of two parts:
 
-## ✨ Key Features
+1. **`crude-ui`**: The GUI editor.
+2. **`browser_runner`**: The background Selenium/Chrome controller.
 
-- **Visual Workflow Editor**: Construct scraping logic by dragging and dropping handlers.
-- **Smart Element Location**: Supports standard CSS selectors for precise targeting.
-- **Variable Binding**: Use extracted data (e.g., `{{product_link}}`) dynamically in subsequent steps.
-- **High-Performance Engine**: The core runner is a standalone Rust binary optimized for speed and stability.
-- **Auto-Managed Driver**: Automatically detects your Chrome version and installs the compatible `chromedriver`.
+### Install via Cargo
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Rust**: [Install Rust]
-- **Google Chrome**: The automation engine requires a Chrome browser installed.
-
-### Installation
+To install both the library and the tools (UI & Runner):
 
 ```bash
-git clone https://github.com/shim9610/crude.git
-cd crude
+cargo install --git "https://github.com/shim9610/crude" crude --features dev-tools
 
-# Install the UI and Runner
-cargo install --path . --bin work_flow_ui
-cargo install --path . --bin browser_runner
 ```
 
-### Running the App
+## 🚀 Usage
+
+### 1. GUI Mode (Recommended for prototyping)
+
+Run the UI editor. This will launch the editor and, upon execution, spawn the `browser_runner` process automatically.
 
 ```bash
-# Start the visual editor
-work_flow_ui
+crude-ui
+
+```
+
+### 2. Library Mode (Headless / CLI)
+
+You can use `crude` as a library to execute saved JSON sequences programmatically without the UI.
+
+**`Cargo.toml`**:
+
+```toml
+[dependencies]
+crude = { git = "https://github.com/shim9610/crude" }
+tokio = { version = "1", features = ["full"] }
+
+```
+
+**`src/main.rs`**:
+
+```rust
+use crude::browser::virtual_browser::{VirtualBrowser, DeviceType};
+use crude::browser::driver_updater::ChromeDriver; // Import Updater
+use std::sync::{Arc, atomic::AtomicBool};
+use std::process::Command;
+use std::time::Duration;
+
+#[tokio::main]
+async fn main() {
+    // 1. Auto-Update ChromeDriver
+    // Checks local Chrome version and downloads matching driver if needed.
+    println!("Checking ChromeDriver...");
+    let driver_path = ChromeDriver::install().expect("Failed to update ChromeDriver");
+    println!("ChromeDriver ready at: {:?}", driver_path);
+
+    // 2. Start ChromeDriver Process
+    // VirtualBrowser connects to localhost:9515, so we must spawn the driver first.
+    let mut driver_process = Command::new(driver_path)
+        .arg("--port=9515")
+        .spawn()
+        .expect("Failed to start driver process");
+
+    // Give it time to start listening
+    tokio::time::sleep(Duration::from_secs(2)).await;
+
+    // 3. Load the Sequence JSON
+    let json_content = std::fs::read_to_string("my_sequence.json").unwrap();
+    let sequence: crude::collector::workflow::Sequence = serde_json::from_str(&json_content).unwrap();
+
+    // 4. Launch Browser Client
+    // DeviceType::Desktop ensures a standard user-agent.
+    let browser = VirtualBrowser::new(DeviceType::Desktop, Some(false)) // false = Show GUI
+        .await
+        .expect("Failed to connect to ChromeDriver");
+
+    // 5. Run
+    println!("Running sequence: {}", sequence.sequence_name);
+    let shutdown = Arc::new(AtomicBool::new(false));
+    
+    match sequence.run(&browser.driver, shutdown, None).await {
+        Ok(results) => println!("Collected {} items", results.len()),
+        Err(e) => eprintln!("Execution failed: {:?}", e),
+    }
+
+    // 6. Cleanup
+    browser.close().await.ok();     // Close Browser Session
+    driver_process.kill().ok();     // Kill Driver Process
+}
+
 ```
 
 ---
 
-## 📖 Handler Reference
+## 🛠 Handler Reference
 
-TaskCrawl works by assembling **Handlers** into a sequence. Here is a detailed breakdown of every available handler and how to use it.
+All logic is composed of **Handlers**. Below is the **exact list** of handlers implemented in `workflow.rs`.
 
-### 🧭 Navigation & Browser Control
+### 1. Navigation & Tabs
 
-Handlers for controlling the browser's state and navigation.
+| Handler | Parameters | Description |
+| --- | --- | --- |
+| **Navigate** | `url` | Navigates the current tab to the specified URL. |
+| **NavigateHref** | `base`, `href` | Joins a base URL with a relative path (often from a binding) and navigates. |
+| **NewTab** | `url` | Opens a new tab and navigates to the URL. Focus switches to the new tab. |
+| **SwitchTab** | `index` | Switches focus to the tab at the specified index (0-based). |
+| **SwitchToLastTab** | - | Switches focus to the last open tab. |
+| **CloseTab** | - | Closes the current tab and switches focus to the last remaining tab. |
+| **Refresh** | - | Refreshes the current page. |
+| **Forward** | - | Navigates forward in browser history. |
+| **Backward** | - | Navigates backward in browser history. |
 
-| Handler | Description | Parameters |
-|---------|-------------|------------|
-| **Navigate** | Directs the browser to a specific URL. | `URL`: Target address (supports bindings). |
-| **New Tab** | Opens a new tab and navigates to a URL. | `URL`: Address to open. |
-| **Switch Tab** | Switches focus to a specific tab index. | `Index`: 0-based tab index. |
-| **Close Tab** | Closes the current tab. | None |
-| **Last Tab** | Switches to the most recently opened tab. | None |
-| **Refresh** | Reloads the current page. | None |
-| **Back / Forward** | Simulates browser Back/Forward buttons. | None |
-| **Switch Frame** | Switches context to an `<iframe>`. Essential for interacting with embedded content. | `Selector`: CSS selector of the iframe. |
-| **Default Frame** | Returns focus to the main page content (exits iframe). | None |
+### 2. Interaction (Action)
 
-### 🖱️ Interaction (Actions)
+If an element is not found, these actions generally fail immediately.
 
-Handlers that simulate user actions on the page.
+| Handler | Parameters | Description | Notes |
+| --- | --- | --- | --- |
+| **Click** | `selector` | Clicks the element matching the CSS selector. | Must be visible. |
+| **ClickByText** | `selector`, `text` | Finds elements by selector, then clicks the one containing the specified `text`. |  |
+| **Type** | `selector`, `text` | Types text into the element (e.g., input field). | Appends to existing text. |
+| **ClearAndType** | `selector`, `text` | Clears the input field first, then types the text. |  |
+| **PressKey** | `key` | Simulates a specific key press. | Supported: `Enter`, `Tab`, `Escape`, `Space`, `Backspace`, `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`. |
+| **ScrollDown** | `scroll` (int) | Scrolls the window down by N pixels. |  |
+| **ScrollUp** | `scroll` (int) | Scrolls the window up by N pixels. |  |
+| **ScrollAll** | - | **Auto-Script**: Attempts to detect all scrollable areas and the main body, and scrolls them to the bottom incrementally. | **Warning**: Can take a long time or loop on infinite-scroll pages. |
+| **DismissPermission** | - | **Auto-Script**: Attempts to click common "Deny/Close" buttons for popup permissions (KR/EN). | Hardcoded selectors. |
 
-| Handler | Description | Parameters |
-|---------|-------------|------------|
-| **Click** | Clicks a specific element. | `Selector`: CSS selector of the target. |
-| **Click Text** | Finds an element containing specific text and clicks it. Useful when IDs/Classes are dynamic. | `Selector`: Context scope. `Text`: Text to match. |
-| **Type** | Types text into an input field (e.g., search box). | `Selector`: Input field. `Text`: String to type. |
-| **Clear & Type** | Clears the input field before typing. Recommended for search bars. | `Selector`: Input field. `Text`: String to type. |
-| **Press Key** | Simulates special keys (Enter, Esc, Tab, Arrows). | `Key`: Select key from list. |
-| **Dismiss Popup** | Automatically attempts to close common permission/cookie popups. | None |
-| **Get HTML** | Gets the raw HTML content of an element. | `Selector`: Target element. `Timeout`: Max wait time (ms). |
+### 3. Context & Frames
 
-### ⏳ Wait & Sync
+| Handler | Parameters | Description |
+| --- | --- | --- |
+| **SwitchToFrame** | `selector` | Switches the driver context to an `<iframe>` matching the selector. |
+| **SwitchToDefaultContent** | - | Returns the driver context to the main page (exits iframe). |
 
-Handlers to ensure the page is ready before proceeding.
+### 4. Wait & Sync
 
-| Handler | Description | Parameters |
-|---------|-------------|------------|
-| **Wait For** | Pauses execution until a specific element appears in the DOM. Prevents "Element Not Found" errors. | `Selector`: Element to wait for. `Timeout`: Max wait time (ms). |
-| **Scroll All** | Smart scrolling behavior. Automatically scrolls down to trigger lazy loading until the bottom is reached. | None |
+| Handler | Parameters | Description |
+| --- | --- | --- |
+| **Wait** | `time_ms` | Unconditional sleep for N milliseconds. |
+| **WaitFor** | `selector`, `time_ms` | Polls for the element's existence. **Fails** if not found within `time_ms`. |
 
-### 📊 Data Extraction
+### 5. Debug / Misc
 
-Handlers for scraping data. Extracted data is saved to the result map and **can be used as bindings** in future steps.
+| Handler | Parameters | Description |
+| --- | --- | --- |
+| **GetHTML** | `selector`, `time_ms` | Dumps `outerHTML`. Retries for `time_ms` if the specific selector isn't found in the dump. |
 
-| Handler | Description | Output |
-|---------|-------------|--------|
-| **Extract Text** | Gets the visible text content of an element. | Text string. |
-| **Extract Attr** | Gets a specific HTML attribute (e.g., `href`, `src`, `data-id`). | Attribute value. |
-| **Count** | Counts how many elements match the selector. | Number (as string). |
-| **Exists** | Checks if an element exists. | `"true"` / `"false"`. |
-| **Multi Text** | Collects text from *all* matching elements into a comma-separated string. | `"Item 1, Item 2, ..."` |
+### 6. Extraction (Data)
 
-### 📦 Logic & Structure
+Extracts data from the current DOM context. Output is stored in the result map and can be bound to variables.
 
-Advanced handlers for looping and modularizing logic.
+| Handler | Parameters | Description | Output |
+| --- | --- | --- | --- |
+| **Text** | `selector`, `field_name` | Extracts `innerText` of the **first** matching element. | String |
+| **MultipleText** | `selector`, `field_name` | Extracts `innerText` of **all** matching elements. | String (joined by comma `, `) |
+| **Attribute** | `selector`, `field_name`, `attr` | Extracts the specified attribute (e.g., `href`) of the **first** match. | String |
+| **Count** | `selector`, `field_name` | Counts the number of elements matching the selector. | String (parsed number) |
+| **Exists** | `selector`, `field_name` | Checks if at least one element exists. | String ("true" / "false") |
 
-#### Container (The Loop)
+> **Note**: There is NO `MultipleAttribute` handler. You must use `Container` to iterate elements and extract attributes individually if needed.
 
-Iterates over a list of elements (e.g., search results, product lists).
+### 7. Flow Control
 
-- **Selector**: Defines the list items (e.g., `div.product-card`).
-- **Behavior**: The sequence inside the Container is executed **once for each item** found.
-- **Scope**: Inside a Container, all selectors are **relative** to the current item.
-
-#### SubSequence (The Function)
-
-Executes a separate, reusable sequence.
-
-- **Usage**: Ideal for repetitive tasks (e.g., "Login Sequence") or organizing complex logic.
-- **Data Mapping**: You can pass data from a Container (e.g., `product_url`) into the SubSequence as input.
-
----
-
-## 🏗️ Architecture
-
-TaskCrawl uses a decoupled architecture for stability:
-
-```
-┌─────────────────┐      TCP      ┌──────────────────┐
-│  work_flow_ui   │ ◄───────────► │  browser_runner  │
-│    (Frontend)   │               │    (Backend)     │
-└─────────────────┘               └──────────────────┘
-         │                                 │
-         │                                 │
-         ▼                                 ▼
-┌─────────────────┐               ┌──────────────────┐
-│    collector    │               │   chromedriver   │
-│  (Core Library) │               │   (WebDriver)    │
-└─────────────────┘               └──────────────────┘
-```
-
-1. **`work_flow_ui` (Frontend)**
-   - Built with `iced` (Rust native GUI).
-   - Handles user interaction, file I/O, and visual editing.
-   - Communicates with the runner via TCP.
-
-2. **`browser_runner` (Backend)**
-   - A background TCP server.
-   - Manages the Selenium WebDriver (`chromedriver`).
-   - Executes the scraping logic independently to prevent UI freezing.
-
-3. **`collector` (Core Library)**
-   - Shared logic defining the `Workflow`, `Action`, and `Extraction` data structures.
+| Handler | Parameters | Description |
+| --- | --- | --- |
+| **Container** | `selector`, `steps`, `dedup` | **Iteration**. Finds all elements matching `selector`. For each element, it runs the inner `steps`. |
+| **SubSequence** | `sequence` | Executes another defined sequence structure. |
 
 ---
 
-## 📄 License
+## ⚠️ Known Limitations & Constraints
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+1. **Strict Error Handling**:
+* The tool is "Fail-Fast". If a selector is wrong, a `WaitFor` times out, or an element is obstructed, the sequence aborts with an error.
+* There is no conditional branching (If/Else) logic.
+
+
+2. **Synchronous Execution**:
+* All actions happen sequentially. `Container` loops process items one by one. This is by design to mimic human speed and simplify state.
+
+
+3. **Browser Process**:
+* The `browser_runner` is a separate process. If you force-quit the UI/Script, the Chrome window might remain open.
+
+
+4. **Auto-Scroll Reliability**:
+* `ScrollAll` is a heuristic script injected into the page. It may not work on complex virtual-scroller implementations (e.g., React Window) without specific tuning.

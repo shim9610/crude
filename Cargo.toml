@@ -8,7 +8,7 @@ resolver = "3"
 
 [package]
 name = "crude"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Chrome driver version manager and flexible crawling logic builder with optional GUI editor"
 license = "MIT"
@@ -39,7 +39,7 @@ path = "src/bin/browser_runner.rs"
 required-features = ["dev-tools"]
 
 [profile.release]  
-opt-level = 3
-lto = true
-codegen-units = 1
+opt-level = 2
+lto = false
+codegen-units = 16
 strip = true
