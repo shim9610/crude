@@ -505,8 +505,40 @@ fn bv_short(bv: &BindValue<String>) -> String {
 
 fn palette_kind_for(handler: &Handler) -> PaletteKind {
     match handler {
-        Handler::Item(Step::Act(_)) => PaletteKind::Click, // default
-        Handler::Item(Step::Extract(_)) => PaletteKind::ExtractText, // default
+        Handler::Item(Step::Act(action)) => match action {
+            Action::Navigate { .. } => PaletteKind::Navigate,
+            Action::NewTab { .. } => PaletteKind::NewTab,
+            Action::Refresh => PaletteKind::Refresh,
+            Action::Backward => PaletteKind::Backward,
+            Action::Forward => PaletteKind::Forward,
+            Action::Click { .. } => PaletteKind::Click,
+            Action::ClickByText { .. } => PaletteKind::ClickByText,
+            Action::WaitFor { .. } => PaletteKind::WaitFor,
+            Action::ScrollAll => PaletteKind::ScrollAll,
+            Action::Type { .. } => PaletteKind::Type,
+            Action::ClearAndType { .. } => PaletteKind::ClearAndType,
+            Action::PressKey { .. } => PaletteKind::PressKey,
+            Action::SwitchToFrame { .. } => PaletteKind::SwitchToFrame,
+            Action::SwitchToDefaultContent => PaletteKind::SwitchToDefaultContent,
+            Action::SwitchTab { .. } => PaletteKind::SwitchTab,
+            Action::CloseTab => PaletteKind::CloseTab,
+            Action::SwitchToLastTab => PaletteKind::SwitchToLastTab,
+            Action::GetHTML { .. } => PaletteKind::GetHTML,
+            Action::DismissPermission => PaletteKind::DismissPermission,
+            Action::NavigateHref { .. } => PaletteKind::NavigateHref,
+            Action::ScrollDown { .. } => PaletteKind::ScrollDown,
+            Action::ScrollUp { .. } => PaletteKind::ScrollUp,
+            Action::Wait { .. } => PaletteKind::Wait,
+        },
+
+        Handler::Item(Step::Extract(extract)) => match extract {
+            Extraction::Text { .. } => PaletteKind::ExtractText,
+            Extraction::Attribute { .. } => PaletteKind::ExtractAttribute,
+            Extraction::Count { .. } => PaletteKind::ExtractCount,
+            Extraction::Exists { .. } => PaletteKind::ExtractExists,
+            Extraction::MultipleText { .. } => PaletteKind::ExtractMultipleText,
+        },
+
         Handler::Container { .. } => PaletteKind::Container,
         Handler::SubSequence(_) => PaletteKind::SubSequence,
     }
@@ -1990,7 +2022,7 @@ impl App {
 
         if let Some(drag) = &self.dragging {
             let (r, g, b) = drag.palette_kind.color();
-            let is_delete_zone = drag.cursor.x < PALETTE_WIDTH + OUTER_PADDING 
+            let is_delete_zone = (drag.cursor.x < PALETTE_WIDTH + OUTER_PADDING) && drag.cursor!= Point::ORIGIN
                 && matches!(drag.source, DragSource::Workflow(_));
             
             let ghost = mouse_layer(
