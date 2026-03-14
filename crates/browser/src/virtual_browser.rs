@@ -18,8 +18,7 @@ impl VirtualBrowser {
         let is_headless = headless.unwrap_or(HEADLESS);
 
         let mut caps = DesiredCapabilities::chrome();
-
-
+        
         let user_agent = match device_type {
             DeviceType::Mobile => {
                 MOBILE_USER_AGENT.to_string()
@@ -34,34 +33,28 @@ impl VirtualBrowser {
         if is_headless {
             caps.add_arg("--headless")?;
         }
-        // ✅ Minimize logs (hide error messages)
+
         caps.add_arg("--log-level=3")?;
         caps.add_arg("--silent")?;
 
-        // ✅ Disable GCM/Push notifications (fix QUOTA_EXCEEDED)
+
         caps.add_arg("--disable-background-networking")?;
         caps.add_arg("--disable-sync")?;
         caps.add_arg("--disable-default-apps")?;
 
-        // ✅ Disable Cast (fix CRL error)
-        caps.add_arg("--disable-cast")?;
         caps.add_arg("--disable-breakpad")?;
 
-        // Existing safe settings
         caps.add_arg("--no-sandbox")?;
         caps.add_arg("--disable-dev-shm-usage")?;
         caps.add_arg("--disable-notifications")?;
         caps.add_arg("--disable-geolocation")?;
-        caps.add_arg("--disable-web-security")?;
-        caps.add_arg("--disable-features=VizDisplayCompositor")?;
         caps.add_arg("--disable-extensions")?;
-        caps.add_arg("--disable-plugins")?;
+
         caps.add_arg("--deny-permission-prompts")?;
         caps.add_arg("--disable-prompt-on-repost")?;
         caps.add_arg("--disable-blink-features=AutomationControlled")?;
         caps.add_arg("--window-size=1920,1080")?;
         caps.add_arg("--force-device-scale-factor=1")?;
-        caps.add_arg("--disable-infobars")?;
         caps.add_arg("--start-maximized")?;
         caps.set_disable_web_security()?;
         let external_ip = EXTERNAL_IP;

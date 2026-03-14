@@ -8,7 +8,7 @@ resolver = "3"
 
 [package]
 name = "crude"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Chrome driver version manager and flexible crawling logic builder with optional GUI editor"
 license = "MIT"
@@ -20,8 +20,8 @@ iced-mouse-layer = { git = "https://github.com/shim9610/iced-mouse-layer", optio
 iced = { version = "0.14", features = ["advanced"], optional = true }
 collector = { path = "crates/collector" }
 browser = { path = "crates/browser" }
-anyhow = "1.0.101"
-tokio = { version = "1.49.0", features = ["full"] }
+anyhow = "1.0.102"
+tokio = { version = "1.50.0", features = ["full"] }
 serde_json = "1.0.149"
 rfd = "0.17.2"
 
