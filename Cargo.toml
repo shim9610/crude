@@ -8,7 +8,7 @@ resolver = "3"
 
 [package]
 name = "crude"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 description = "Chrome driver version manager and flexible crawling logic builder with optional GUI editor"
 license = "MIT"

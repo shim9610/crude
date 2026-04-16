@@ -58,10 +58,9 @@ impl VirtualBrowser {
         caps.add_arg("--start-maximized")?;
         caps.set_disable_web_security()?;
 
-        // Remove the "Chrome is being controlled by automated test software" banner
-        // and strip the automation extension so navigator.webdriver stays consistent.
+        // Remove the "Chrome is being controlled by automated test software" banner.
+        // (useAutomationExtension is deprecated since Chrome 140+ and ignored — omitted.)
         caps.add_exclude_switch("enable-automation")?;
-        caps.add_experimental_option("useAutomationExtension", false)?;
 
         let external_ip = EXTERNAL_IP;
         if external_ip != "0.0.0.0" {
@@ -136,8 +135,25 @@ impl VirtualBrowser {
         let mut out = vec![];
         let result: Vec<std::collections::HashMap<String, String>> = sequence.run(&self.driver,shutdown_flag,ctx).await?;
         for data in result{
-            out.push(data);            
+            out.push(data);
         }
         Ok(out)
+    }
+
+    /// Navigate to `start_url`, wait `settle_ms` (default 2000) for the page to settle,
+    /// then run the sequence. Convenience combination of `move_to` + `run_sequence`
+    /// — matches what `browser_runner` / `crude-ui` do internally.
+    pub async fn run_from(
+        &self,
+        start_url: &str,
+        sequence: Sequence,
+        shutdown_flag: Arc<AtomicBool>,
+        ctx: Option<&mut ExecContext>,
+        settle_ms: Option<u64>,
+    ) -> Result<Vec<HashMap<String, String>>> {
+        self.driver.goto(start_url).await?;
+        let wait = settle_ms.unwrap_or(2000);
+        tokio::time::sleep(tokio::time::Duration::from_millis(wait)).await;
+        self.run_sequence(sequence, shutdown_flag, ctx).await
     }
 }
