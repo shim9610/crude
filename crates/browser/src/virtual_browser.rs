@@ -29,14 +29,14 @@ impl VirtualBrowser {
         };
         
         caps.add_arg(&format!("--user-agent={}", user_agent))?;
-        
+
+        // Chrome 132+ removed the legacy headless binary; `--headless=new` is required.
         if is_headless {
-            caps.add_arg("--headless")?;
+            caps.add_arg("--headless=new")?;
         }
 
         caps.add_arg("--log-level=3")?;
         caps.add_arg("--silent")?;
-
 
         caps.add_arg("--disable-background-networking")?;
         caps.add_arg("--disable-sync")?;
@@ -57,6 +57,12 @@ impl VirtualBrowser {
         caps.add_arg("--force-device-scale-factor=1")?;
         caps.add_arg("--start-maximized")?;
         caps.set_disable_web_security()?;
+
+        // Remove the "Chrome is being controlled by automated test software" banner
+        // and strip the automation extension so navigator.webdriver stays consistent.
+        caps.add_exclude_switch("enable-automation")?;
+        caps.add_experimental_option("useAutomationExtension", false)?;
+
         let external_ip = EXTERNAL_IP;
         if external_ip != "0.0.0.0" {
                 caps.add_arg(&format!("--host={}", external_ip))?;
@@ -64,17 +70,18 @@ impl VirtualBrowser {
 
 
         let driver = WebDriver::new(selenium_url, caps).await?;
-        
+
     let result = async {
             driver.execute(
                 r#"
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
                 window.chrome = { runtime: {} };
                 Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
                 Object.defineProperty(navigator, 'languages', { get: () => ['ko-KR', 'ko'] });
                 "#,
                 vec![]
             ).await?;
-            
+
             Ok::<_, anyhow::Error>(())
         }.await;
         

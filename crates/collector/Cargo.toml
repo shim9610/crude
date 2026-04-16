@@ -1,18 +1,17 @@
 [package]
 name = "collector"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
-bincode = "2.0.0"
-scraper = "0.25.0"
+scraper = "0.26.0"
 serde_json = "1.0.149"
 thirtyfour = "0.36.1"
-tokio = { version = "1.49.0", features = ["fs"] }
+tokio = { version = "1.52.0", features = ["fs"] }
 
 iced = { version = "0.14", features = ["advanced"], optional = true }
 iced-mouse-layer = { git = "https://github.com/shim9610/iced-mouse-layer", optional = true }
-serde = "1.0.228"
+serde = { version = "1.0.228", features = ["derive"] }
 url = "2.5.8"
 
 [features]
